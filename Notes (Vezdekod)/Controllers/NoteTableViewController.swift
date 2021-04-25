@@ -67,9 +67,17 @@ class NoteTableViewController: UITableViewController, UIPickerViewDataSource, UI
   
   private func setupUI() {
     if let note = note {
-      detailTitleLabel.text = note.title
-      titleTextField.text = note.title
-      textView.text = note.text
+      if let title = note.title {
+        self.title = title
+        detailTitleLabel.text = title
+        titleTextField.text = title
+      } else {
+        detailTitleLabel.text = nil
+        titleTextField.text = nil
+      }
+      if let text = note.text {
+        textView.text = text
+      }
       if let index = categories.enumerated().first(where: { $0.element.rawValue == note.category })?.offset {
         pickerView.selectRow(index, inComponent: 0, animated: true)
       }
@@ -99,7 +107,7 @@ class NoteTableViewController: UITableViewController, UIPickerViewDataSource, UI
       detailTitleLabel.isHidden = false
       clearButton.isHidden = true
       navigationItem.rightBarButtonItem = UIBarButtonItem(
-        barButtonSystemItem: .edit, target: self, action: #selector(editPressed)
+        barButtonSystemItem: .edit, target: self, action: #selector(savePressed)
       )
     }
   }
@@ -115,7 +123,6 @@ class NoteTableViewController: UITableViewController, UIPickerViewDataSource, UI
           image: isImageChanged ? placeholderImageView.image?.pngData() : nil,
           category: selectedCategory.rawValue,
           text: textView.text) { [weak self] note in
-          self?.note = note
           self?.state = .detail
           self?.setupUI()
         }
@@ -133,13 +140,9 @@ class NoteTableViewController: UITableViewController, UIPickerViewDataSource, UI
         }
       }
     case .detail:
-      break
+      state = .edit
+      setupUI()
     }
-  }
-  
-  @objc private func editPressed() {
-    state = .edit
-    setupUI()
   }
   
   func numberOfComponents(in pickerView: UIPickerView) -> Int {
